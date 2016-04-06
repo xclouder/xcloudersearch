@@ -18,6 +18,8 @@ public class XClouderSearchEditorWindow : EditorWindow {
 	private GUIStyle mCellStyle = null;
 	private GUIStyle mCellStyle_odd = null;
 
+	static float SEARCH_DELAY = 0.8F;
+
 	[MenuItem ("Window/xClouder Search Window %.")]
 	static void CreateWindow () {
 		// Get existing open window or if none, make a new one:
@@ -38,13 +40,20 @@ public class XClouderSearchEditorWindow : EditorWindow {
 	}
 
 	private SearchHistoryMgr historyMgr = new SearchHistoryMgr();
+	private SearchTrigger searchTrigger = new SearchTrigger();
 	public void Init()
 	{
+		isFirstShow = true;
+
 		SetHeight(0f);
 		previousText = string.Empty;
 		this.CenterOnMainWin(new Vector2(0f, -250f));
 
 		CreateCellStyleIfNeeds();
+
+		searchTrigger.onSearchTrigger += OnSearch;
+
+		EditorApplication.update += OnEditorUpdate;
 	}
 
 	private void SetHeight(float height)
@@ -87,9 +96,11 @@ public class XClouderSearchEditorWindow : EditorWindow {
 		GUI.SetNextControlName("SearchTextField");
 		searchTxt = GUILayout.TextField(searchTxt, new GUILayoutOption[] { GUILayout.ExpandWidth(true) });
 
-		GUI.SetNextControlName("HiddenField");
-		GUI.TextField(new Rect(-100f, -100f, 1f,1f), "");
-
+		if (isFirstShow)
+		{
+			GUI.FocusControl("SearchTextField");
+			isFirstShow = false;
+		}
 
 		if (EditorWindow.focusedWindow == this)
 		{
@@ -102,27 +113,45 @@ public class XClouderSearchEditorWindow : EditorWindow {
 					{
 						this.Close();
 					}
-					else if (Event.current.keyCode == (KeyCode.UpArrow) || Event.current.keyCode == (KeyCode.DownArrow))
+					else if (Event.current.keyCode == (KeyCode.UpArrow) || Event.current.keyCode == (KeyCode.DownArrow)
+				         || Event.current.keyCode == (KeyCode.Return)
+				         )
 					{
 
 					}
 					else
 					{
-						EditorGUI.FocusTextInControl("SearchTextField");
+						searchTrigger.Update();
+						shouldSearch = false;
 					}
+
 					break;
 				}
 			}
-
 		}
 
-
-		if (isFirstShow)
+		if (shouldSearch)
 		{
-			GUI.FocusControl("SearchTextField");
-			isFirstShow = false;
+			DoSearch();
 		}
+	}
 
+	private void OnEditorUpdate()
+	{
+		if (shouldSearch)
+		{
+			this.Repaint();
+		}
+	}
+
+	private bool shouldSearch = false;
+	public void OnSearch()
+	{
+		shouldSearch = true;
+	}
+
+	private void DoSearch()
+	{
 		string[] resultList = null;
 		if (string.IsNullOrEmpty(searchTxt))
 		{
@@ -130,24 +159,24 @@ public class XClouderSearchEditorWindow : EditorWindow {
 			{
 				selectedIndex = -1;
 			}
-
+			
 			previousText = searchTxt;
 			resultListCache = null;
-
+			
 			//show history
 			resultList = historyMgr.GetHistory();
 			//			SetHeight(ITEM_SEARCHBOX_HEIGHT);
-
+			
 			ShowSearchRestult(resultList);
 			return;
 		}
-
+		
 		if (previousText != searchTxt)
 		{
 			previousText = searchTxt;
-
+			
 			selectedIndex = -1;
-
+			
 			resultList = GetResult(searchTxt);
 			resultListCache = resultList;
 		}
@@ -155,9 +184,8 @@ public class XClouderSearchEditorWindow : EditorWindow {
 		{
 			resultList = resultListCache;
 		}
-
+		
 		ShowSearchRestult(resultList);
-
 	}
 
 	private void ShowSearchRestult(string[] resultList)
