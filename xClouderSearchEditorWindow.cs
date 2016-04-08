@@ -75,6 +75,7 @@ public class XClouderSearchEditorWindow : EditorWindow {
 
 		mCellStyle_odd = new GUIStyle(mCellStyle);//style for cells
 		mCellStyle_odd.fixedHeight = ITEM_LINE_HEIGHT;
+		mCellStyle_odd.normal.textColor = Color.gray;
 		mCellStyle_odd.normal.background = Resources.Load<Texture2D>("Textures/table_bg_odd");
 		mCellStyle_odd.onNormal.background = Resources.Load<Texture2D>("Textures/table_bg_even");
 	}
