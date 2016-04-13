@@ -263,7 +263,11 @@ public class XClouderSearchEditorWindow : EditorWindow {
 
 		if (path.EndsWith(".unity"))
 		{
+			#if UNITY_5
+			UnityEditor.SceneManagement.EditorSceneManager.OpenScene(path);
+			#else
 			EditorApplication.OpenScene(path);
+			#endif
 		}
 
 		if (path.EndsWith(".cs"))
