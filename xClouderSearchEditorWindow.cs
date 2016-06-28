@@ -261,19 +261,8 @@ public class XClouderSearchEditorWindow : EditorWindow {
 	{
 		SaveToHistory(path);
 
-		if (path.EndsWith(".unity"))
-		{
-			#if UNITY_5
-			UnityEditor.SceneManagement.EditorSceneManager.OpenScene(path);
-			#else
-			EditorApplication.OpenScene(path);
-			#endif
-		}
-
-		if (path.EndsWith(".cs"))
-		{
-			UnityEditorInternal.InternalEditorUtility.OpenFileAtLineExternal(path, 1);
-		}
+		Object obj = AssetDatabase.LoadAssetAtPath(path, typeof(Object));
+		AssetDatabase.OpenAsset(obj);
 	}
 
 	private BaseSearcher searcher;
